@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
 import binascii
 import secrets
 from sys import argv
@@ -15,6 +14,7 @@ def main():
     txt_to_encrypt = txt_to_encrypt.encode("utf-8")
     
     key = secrets.token_bytes(32)
+    print(key)
     monomer_string = str(binascii.b2a_hex(key))
     monomer_string = monomer_string[2:(len(monomer_string) - 1)]
     
