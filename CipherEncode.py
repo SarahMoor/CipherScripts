@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from Cryptodome.Cipher import AES
-
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+import binascii
+import secrets
 
 def main():
-    #### Need to figure out how they generate key from that string
-    key = b'1fbf74bbc74a4bde'
+    
+    key = secrets.token_bytes(32)
+    print(binascii.b2a_hex(key))  
+
     cipher = AES.new(key, AES.MODE_EAX)
     
     
@@ -15,6 +19,5 @@ def main():
     file_out = open("encrypted.bin", "wb")
     [ file_out.write(x) for x in (cipher.nonce, tag, ciphertext) ]
     file_out.close()
-    
     
 main ()
