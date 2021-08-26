@@ -2,48 +2,11 @@
 
 from Crypto.Cipher import AES
 from sys import argv
-import pandas as pd
-import openpyxl
+import binascii
+from openpyxl import load_workbook
 
+global hex_codes
 
-def MakeHexstring(sheet, codes_workbook):
-    """
-    Takes in excel sheet with templated LC/MS data and converts this first to
-    it's hexadecimal format, and then to binary
-
-    Parameters
-    ----------
-    sheet : xlsx reader object
-        Templated LC/MS data in an excel sheet.
-
-    Returns
-    -------
-    encoded_bitstring : string
-        binary digits (0s and 1s) in string format.
-
-    """
-    encoded_bitstring = ""
-    for i in range(sheet.nrows):
-        for j in range(sheet.ncols):
-            if len(sheet.cell_value(i, j)) > 3:
-                cells = sheet.cell_value(i, j).strip(" ")
-                cells = sheet.cell_value(i, j).split(",")
-                for k in range(0, len(cells)):
-                    value1 = cells[k]
-                    if k == len(cells) - 1:
-                        value2 = 0
-                    else:
-                        value2 = cells[k + 1]
-                    hex_value = str(MassToHex(value1, value2))[0]
-                    
-                    # skipping over starting index monomer!
-                    if hex_value == "e" and k == 0:
-                        continue
-
-                    print(hex_value)
-                    encoded_bitstring += hex_value
-
-    return encoded_bitstring
 
 def MassToHex(value1, value2, hex_codes):
     """
@@ -63,70 +26,93 @@ def MassToHex(value1, value2, hex_codes):
         lost, then returns monomer that matches this mass difference.
 
     """
-    
-    
     mass_match = float(value1) - float(value2)
+    for i in hex_codes.values():
+        if (i + 1.5 >= mass_match and i - 1.5 <= mass_match):
+            print(value1, value2, mass_match, list(hex_codes.keys())
+                  [list(hex_codes.values()).index(i)])
+            return list(hex_codes.keys())[list(hex_codes.values()).index(i)]
+    print()
+    print(mass_match, "NOT MATCHED")
+    return "!"
 
-    if (i[0] + 1.5 >= mass_match and i[0] - 1.5 <= mass_match) or (
-        i[1] + 1.5 >= mass_match and i[1] - 1.5 <= mass_match
-    ):
-        print(value1, value2, mass_match)
-            
-        return () 
-    
-    else:
-        print("MONOMER NOT FOUND")
 
+def MakeBitstring(sheet, hex_codes):
+    """
+    Takes in excel sheet with templated LC/MS data and converts this first to
+    it's hexadecimal format, and then to binary
+
+    Parameters
+    ----------
+    sheet : xlsx reader object
+        Templated LC/MS data in an excel sheet.
+
+    Returns
+    -------
+    encoded_bitstring : string
+        hex digits in string format.
+
+    """
+    encoded_hexstring = ""
+    new_oligomer = 0
+    for col in sheet.iter_cols(min_row=2, min_col=2, values_only=True):
+        start_oligomer = 0
+        oligomer_number = 0
+        for entry in col:
+            oligomer_number += 1
+            if entry == None:
+                break
+            entry = float(entry)
+            new_oligomer = entry
+            if start_oligomer == 0:
+                start_oligomer = new_oligomer
+            elif oligomer_number == 2:
+                start_oligomer = new_oligomer
+            else:
+                hex_value = str(
+                    MassToHex(start_oligomer, new_oligomer, hex_codes))[0]
+                encoded_hexstring += hex_value
+                start_oligomer = new_oligomer
+    return encoded_hexstring
 
 
 def ConvertToFloat(mass_list):
     total_list = []
     for x in mass_list:
-        temp_list = []
-        for y in x:
-            print(y)
-            y = float(y)
-            temp_list.append(y)
-        total_list.append(temp_list)
+        x = float(x)
+        total_list.append(x)
     return total_list
 
 
-def main ():
+def main():
     # get name of csv to read in and write out
     script, encrypted_file, monomer_hex_assignment, LCMS_template = argv
 
     # open and parse file to be decrypted
     encrypted_text = open(encrypted_file, "rb")
-    nonce, tag, ciphertext = [ encrypted_text.read(x) for x in (16, 16, -1) ]
-    
-    codes_workbook = pd.read_excel(monomer_hex_assignment, index_col=None, header=0, dtype={'Monomer':str, "Mass":float, "NBDMass":float})
-    s = (codes_workbook['Monomer'].loc[codes_workbook['Mass'] == 103.06]).iloc[0]
-    d = codes_workbook['Mass'][0]
-    e = codes_workbook['NBDMass']
-    print(d)
-    print(103.06 in codes_workbook.Mass.values)
-    print(103.06 in codes_workbook.NBDMass.values)
-    
+    nonce, tag, ciphertext = [encrypted_text.read(x) for x in (16, 16, -1)]
 
+    ####### READ IN HEX ASSIGNMENTS TO MONOMER MASSES ######
+    codes_workbook = load_workbook(filename=monomer_hex_assignment)
+    sheet1 = codes_workbook.active
+    hex_codes = {}
 
-    # DELETE THIS LATER
-    key = b'\xa5\xe9\x8f$\x0e\x0f\x13\xe9\xf34\xee\xe10\x17\xa7o{\xe1\x8f\\H\xd8\\0\xb7T3\x98\xc9[oH'
+    for row in sheet1.iter_rows(min_row=2, values_only=True):
+        hex_codes[row[0]] = row[1]
 
-    masses = []
+    ####### END READ IN HEX ASSIGNMENTS TO MONOMER MASSES ######
 
+    ####### END READ IN LCMS TEMPLATE WITH MASSES ######
+    template_workbook = load_workbook(filename=(LCMS_template))
+    LCMSsheet = template_workbook.active
 
-    '''
-    lcms_mass_workbook = pd.read_excel(LCMS_template, index_col = 0, header = 0)
-    print(lcms_mass_workbook)
-    for index, row in lcms_mass_workbook.iterrows():
-        print(row)
-    
-    template_workbook = xlrd.open_workbook(LCMS_template)
-    LCMSsheet = template_workbook.sheet_by_index(0)
+    encoded_bitstring = MakeBitstring(LCMSsheet, hex_codes)
+    print((encoded_bitstring))
 
-    # convert hex codes to binary representation
-    encoded_bitstring = MakeHexstring(LCMSsheet, codes_workbook)
-            
+    key = binascii.unhexlify(encoded_bitstring)
+    print(key)
+
+    ####### END READ IN LCMS TEMPLATE WITH MASSES ######
 
     cipher = AES.new(key, AES.MODE_EAX, nonce)
 
@@ -138,6 +124,6 @@ def main ():
         decrypted_file.close()
     except ValueError:
         print("Incorrect Key")
-    '''
 
-main ()
+
+main()
