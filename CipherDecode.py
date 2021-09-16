@@ -29,8 +29,6 @@ def MassToHex(value1, value2, hex_codes):
     mass_match = float(value1) - float(value2)
     for i in hex_codes.values():
         if (i + 1.5 >= mass_match and i - 1.5 <= mass_match):
-            print(value1, value2, mass_match, list(hex_codes.keys())
-                  [list(hex_codes.values()).index(i)])
             return list(hex_codes.keys())[list(hex_codes.values()).index(i)]
     print()
     print(mass_match, "NOT MATCHED")
