@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import os
+import argparse
 from Cryptodome.Cipher import AES
 from sys import argv
 import binascii
@@ -7,6 +8,36 @@ from openpyxl import load_workbook
 
 global hex_codes
 
+def GetArgs():
+    '''
+    parses script arguments to make running this script more intuitive
+
+    Raises
+    ------
+    FileNotFoundError
+        raises error if file cannot be found.
+
+    Returns
+    -------
+    args : string
+        returns the filename of the txt to be encrypted.
+
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--encryptedfile', metavar='\b',
+                        help="name of file to be decrypted", action="store", dest="encrypted_file")
+    parser.add_argument('-f', '--file', metavar='\b',
+                        help="name of file to be encrypted", action="store", dest="filename")
+    parser.add_argument('-f', '--file', metavar='\b',
+                        help="name of file to be encrypted", action="store", dest="filename")    
+    args = parser.parse_args()
+
+    # Check if file exists
+    if os.path.exists('{}'.format(args.filename)) is False:
+        print('{}'.format(args.filename))
+        raise FileNotFoundError('Cannot find {}'.format(args.filename))
+
+    return args
 
 def MassToHex(value1, value2, hex_codes):
     """
