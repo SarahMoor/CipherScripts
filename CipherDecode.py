@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 from sys import argv
 import binascii
 from openpyxl import load_workbook
