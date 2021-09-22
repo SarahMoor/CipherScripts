@@ -26,16 +26,22 @@ def GetArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--encryptedfile', metavar='\b',
                         help="name of file to be decrypted", action="store", dest="encrypted_file")
-    parser.add_argument('-f', '--file', metavar='\b',
-                        help="name of file to be encrypted", action="store", dest="filename")
-    parser.add_argument('-f', '--file', metavar='\b',
-                        help="name of file to be encrypted", action="store", dest="filename")    
+    parser.add_argument('-m', '--monomerfile', metavar='\b',
+                        help="name of file with monomer to hex assignments", action="store", dest="monomer_hex_assignment")
+    parser.add_argument('-t', '--template', metavar='\b',
+                        help="template containing monomer masses", action="store", dest="LCMS_template")    
     args = parser.parse_args()
 
     # Check if file exists
-    if os.path.exists('{}'.format(args.filename)) is False:
-        print('{}'.format(args.filename))
-        raise FileNotFoundError('Cannot find {}'.format(args.filename))
+    if os.path.exists('{}'.format(args.encrypted_file)) is False:
+        print('{}'.format(args.encrypted_file))
+        raise FileNotFoundError('Cannot find {}'.format(args.encrypted_file))
+    if os.path.exists('{}'.format(args.monomer_hex_assignment)) is False:
+        print('{}'.format(args.monomer_hex_assignment))
+        raise FileNotFoundError('Cannot find {}'.format(args.monomer_hex_assignment))
+    if os.path.exists('{}'.format(args.LCMS_template)) is False:
+        print('{}'.format(args.LCMS_template))
+        raise FileNotFoundError('Cannot find {}'.format(args.LCMS_template))
 
     return args
 
@@ -115,7 +121,12 @@ def ConvertToFloat(mass_list):
 
 def main():
     # get name of csv to read in and write out
-    script, encrypted_file, monomer_hex_assignment, LCMS_template = argv
+    #script, encrypted_file, monomer_hex_assignment, LCMS_template = argv
+    
+    args = GetArgs()
+    encrypted_file = args.encrypted_file
+    monomer_hex_assignment = args.monomer_hex_assignment
+    LCMS_template = args.LCMS_template
 
     # open and parse file to be decrypted
     encrypted_text = open(encrypted_file, "rb")
