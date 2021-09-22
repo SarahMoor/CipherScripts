@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 
 global hex_codes
 
+
 def GetArgs():
     '''
     parses script arguments to make running this script more intuitive
@@ -29,7 +30,7 @@ def GetArgs():
     parser.add_argument('-m', '--monomerfile', metavar='\b',
                         help="name of file with monomer to hex assignments", action="store", dest="monomer_hex_assignment")
     parser.add_argument('-t', '--template', metavar='\b',
-                        help="template containing monomer masses", action="store", dest="LCMS_template")    
+                        help="template containing monomer masses", action="store", dest="LCMS_template")
     args = parser.parse_args()
 
     # Check if file exists
@@ -38,12 +39,14 @@ def GetArgs():
         raise FileNotFoundError('Cannot find {}'.format(args.encrypted_file))
     if os.path.exists('{}'.format(args.monomer_hex_assignment)) is False:
         print('{}'.format(args.monomer_hex_assignment))
-        raise FileNotFoundError('Cannot find {}'.format(args.monomer_hex_assignment))
+        raise FileNotFoundError(
+            'Cannot find {}'.format(args.monomer_hex_assignment))
     if os.path.exists('{}'.format(args.LCMS_template)) is False:
         print('{}'.format(args.LCMS_template))
         raise FileNotFoundError('Cannot find {}'.format(args.LCMS_template))
 
     return args
+
 
 def MassToHex(value1, value2, hex_codes):
     """
@@ -122,7 +125,7 @@ def ConvertToFloat(mass_list):
 def main():
     # get name of csv to read in and write out
     #script, encrypted_file, monomer_hex_assignment, LCMS_template = argv
-    
+
     args = GetArgs()
     encrypted_file = args.encrypted_file
     monomer_hex_assignment = args.monomer_hex_assignment
