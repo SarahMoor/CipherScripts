@@ -150,10 +150,23 @@ def main():
     LCMSsheet = template_workbook.active
 
     encoded_bitstring = MakeBitstring(LCMSsheet, hex_codes)
+    print("hexadecimal key:")
     print((encoded_bitstring))
+    print ()
+    
+    end_length = len(encoded_bitstring) * 4
+
+    hex_as_int = int(encoded_bitstring, 16)
+    hex_as_binary = bin(hex_as_int)
+    padded_binary = hex_as_binary[2:].zfill(end_length)
+    print("binary key:")
+    print(padded_binary)
+    print ()
 
     key = binascii.unhexlify(encoded_bitstring)
+    print(".bin format:")
     print(key)
+    print ()
 
     ####### END READ IN LCMS TEMPLATE WITH MASSES ######
 
@@ -165,6 +178,7 @@ def main():
         decrypted_file = open("decrypted_file.txt", 'w+')
         decrypted_file.write(data)
         decrypted_file.close()
+        print("Successfully Decrypted")
     except ValueError:
         print("Incorrect Key")
 
